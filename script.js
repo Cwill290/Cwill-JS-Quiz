@@ -1,132 +1,186 @@
-// Sample questions for the quiz
-const questions = [
-    {
-        question: 'What is the correct way to write a JavaScript array?',
-        answers: [
-            'var colors = "red", "blue", "green";',
-            'var colors = (1:"red", 2:"blue", 3:"green");',
-            'var colors = ["red", "blue", "green"];',
-            'var colors = 1 = ("red"), 2 = ("blue"), 3 = ("green");'
-        ],
-        correct: 2
-    },
-    // Additional questions can be added here
+let question = document.querySelector("#question");
+let multipleChoiceList = document.querySelector("#multipleChoice");
+let validate = document.querySelector("#validate");
+let btnStartQuiz = document.querySelector("#startBtn");
+let timeCount = document.querySelector("#timeCount");
+let score = document.querySelector("#score");
+let highscores = document.querySelector("#highscores");
+let initials = document.querySelector("#initials");
+let hsList = document.querySelector("#hsList");
+let replaceBtn;
+let i = 0;
+let count = 60;
+let indexReplace;
+let answer;
+let highscoreInitials = [];
+let highscoreCount = [];
+let timerID;
+
+let multipleChoiceOptions = [
+    "if statements", "arrays", ".length", ".sort()",
+    "global scope", "key value pairs", "functions", "web apis"
 ];
 
-// Game state variables
-let currentQuestionIndex = 0;
-let timeRemaining = 60;
-let timerInterval;
+let questionListArray = [1, 2, 3, 4, 5];
 
-// DOM elements
-const questionContainer = document.getElementById('question-container');
-const answerButtons = document.getElementById('answer-buttons');
-const timerElement = document.getElementById('time-remaining');
-const feedbackElement = document.getElementById('feedback');
+let questionList = {
+    1: ["_____ adds interactivity to a static website", "JavaScript"],
+    2: ["This converts objects to strings: ", "JSON.stringify()"],
+    3: ["This method selects all the elements that match", ".querySelectorAll('')"],
+    4: ["A very useful tool used during development and debugging for printing content to the debugger is:", "console.log"],
+    5: ["String values must be enclosed within _____ when being assigned to variables", "quotes"],
+};
 
-// Function to start the game
-function startGame() {
-    currentQuestionIndex = 0;
-    timeRemaining = 60;
-    timerElement.innerText = timeRemaining;
-    displayQuestion();
-    startTimer();
+// Function to randomize the order of an array
+let randomOrder = function (arr) {
+    let b = 0;
+    let c = 0;
+    for (a = 0; a < arr.length; a++) {
+        b = Math.floor(Math.random() * (arr.length - 1) + 1);
+        c = arr[a];
+        arr[a] = arr[b];
+        arr[b] = c;
+    }
+    return arr;
+};
+
+randomOrder(questionListArray);
+
+// Function to display the question and related multiple-choice answers
+let displayQuestion = function () {
+    if (i < questionListArray.length) {
+        let index = questionListArray[i];
+        question.textContent = questionList[index][0];
+        answer = questionList[index][1];
+        multipleChoiceOptions = randomOrder(multipleChoiceOptions);
+        displayAnswers();
+    } else {
+        finish();
+    }
 }
 
-// Function to display the current question
-function displayQuestion() {
-    console.log('Displaying question', currentQuestionIndex);
-    const question = questions[currentQuestionIndex];
-    console.log('Question object:', question); // Debugging line
-    questionContainer.innerText = question.question;
-    answerButtons.innerHTML = '';
-    question.answers.forEach((answer, index) => {
-        console.log('Creating button for answer', index, answer); // Debugging line
-        const button = document.createElement('a');
-        button.innerText = answer;
-        button.href = 'javascript:void(0)'; // Make it behave like a button
-        button.classList.add('btn');
-        button.addEventListener('click', () => handleAnswer(index));
-        answerButtons.appendChild(button);
-    });
+// Function to handle the display of multiple-choice answers
+let displayAnswers = function () {
+    for (let j = 0; j < 4; j++) {
+        let list = document.createElement("button");
+        list.textContent = multipleChoiceOptions[j];
+        list.setAttribute("id", j);
+        multipleChoiceList.appendChild(list);
+    }
+
+    indexReplace = Math.floor(Math.random() * 4);
+    replaceBtn = document.getElementById(indexReplace);
+    replaceBtn.textContent = answer;
 }
 
-// Function to start the timer
-function startTimer() {
-    clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-        timeRemaining--;
-        timerElement.innerText = timeRemaining;
-        if (timeRemaining <= 0) {
-            endGame();
+// Event listener to check if the selected answer is correct
+multipleChoiceList.addEventListener("click", function (event) {
+    let userAns = event.target;
+    if (userAns == replaceBtn) {
+        validate.textContent = "Correct!";
+    } else {
+        validate.textContent = "Wrong!";
+        count = count - 10;
+    }
+
+    setTimeout(() => {
+        validate.textContent = "";
+        for (let c = 3; c >= 0; c--) {
+            multipleChoiceList.children[c].remove();
         }
-    }, 1000);
-}
-
-// Call the startGame function when the page loads
-startGame();
-
-// Function to handle the user's answer
-function handleAnswer(selectedIndex) {
-    const correctIndex = questions[currentQuestionIndex].correct;
-    if (selectedIndex === correctIndex) {
-        feedbackElement.innerText = 'Correct!';
-    } else {
-        feedbackElement.innerText = 'Incorrect!';
-        timeRemaining -= 10; // Subtract time for incorrect answer
-        timerElement.innerText = timeRemaining;
-    }
-
-    // Move to the next question or end the game if all questions are answered
-    currentQuestionIndex++;
-    if (currentQuestionIndex < questions.length) {
+        i++;
         displayQuestion();
-    } else {
-        endGame();
+    }, "500");
+})
+
+// Function to handle the end of the quiz
+let finish = function () {
+    clearInterval(timerID);
+    document.getElementById("quiz").setAttribute("style", "display: none");
+    document.getElementById("finish").setAttribute("style", "display: flex");
+    score.textContent = count;
+    storeHighScore();
+}
+
+// Function to store high scores
+let storeHighScore = function () {
+    document.querySelector("#submitBtn").addEventListener("click", function (event) {
+        event.preventDefault()
+        highscoreCount = JSON.parse(localStorage.getItem("hi-scores")) || [];
+        let newScore = {
+            initials: initials.value,
+            score: count
+        };
+
+        highscoreCount.push(newScore);
+        localStorage.setItem("hi-scores", JSON.stringify(highscoreCount));
+        highscoresPage();
+    })
+}
+
+// Function to handle the high scores page
+let highscoresPage = function () {
+    clearInterval(timerID);
+    document.getElementById("intro").setAttribute("style", "display: none");
+    document.getElementById("quiz").setAttribute("style", "display: none");
+    document.getElementById("finish").setAttribute("style", "display: none");
+    highscores.setAttribute("style", "display: flex");
+
+    let myHighscores = JSON.parse(localStorage.getItem("hi-scores")) || [];
+    myHighscores.sort(function (x, y) {
+        return y.score - x.score;
+    })
+
+    hsList.innerHTML = "";
+    for (let a = 0; a < myHighscores.length; a++) {
+        let li = document.createElement("li");
+        li.textContent = myHighscores[a].initials + "-" + myHighscores[a].score;
+        hsList.appendChild(li);
     }
+
+
+    //localStorage.getItem(initials);
+
+    document.querySelector("#backBtn").addEventListener("click", function () {
+        highscores.setAttribute("style", "display: none");
+        document.getElementById("intro").setAttribute("style", "display:flex;");
+        window.location.reload();
+    })
+
+    document.querySelector("#clearBtn").addEventListener("click", function () {
+        localStorage.removeItem("hi-scores");
+        window.location.reload();
+    })
+
 }
 
-// Function to end the game and save the score
-function endGame() {
-    clearInterval(timerInterval);
-    // Redirect to the highscores page and pass the score as a query parameter
-    window.location.href = './highscores.html?score=' + timeRemaining;
-}
 
-// Additional logic for handling high scores can be added to the highscores.html page
-
-// Function to get a query parameter from the URL
-function getQueryParam(name) {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get(name);
-}
-
-// Function to load and display high scores
-function loadHighScores() {
-    const highScoresList = document.getElementById('highscores-list');
-    const highScores = JSON.parse(localStorage.getItem('highscores')) || [];
-    highScores.forEach(score => {
-        const scoreItem = document.createElement('tr');
-        scoreItem.innerHTML = '<td>' + score.name + '</td><td>' + score.score + '</td>';
-        highScoresList.appendChild(scoreItem);
-    });
-}
-
-// Function to save a new high score
-function saveHighScore(score) {
-    const name = prompt('Enter your initials:');
-    if (name) {
-        const highScores = JSON.parse(localStorage.getItem('highscores')) || [];
-        highScores.push({ name, score });
-        localStorage.setItem('highscores', JSON.stringify(highScores));
+//view high score page
+document.querySelector("a").addEventListener("click", function (event) {
+    if (event.target) {
+        highscoresPage();
     }
+})
+
+//Timer function
+function timer() {
+    timerID = setInterval(function () {
+        if (count <= 0) {
+            timeCount.textContent = "times up";
+            count = 0;
+            finish();
+            return;
+        }
+        timeCount.textContent = count;
+        count--;
+    }, 1000);
+
 }
 
-// Handle high scores if on the highscores.html page
-if (window.location.pathname.endsWith('highscores.html')) {
-    const score = parseInt(getQueryParam('score'));
-    if (score) {
-        saveHighScore(score);
-    }
-    loadHighScores();
-}
+//starts the timer
+btnStartQuiz.addEventListener("click", function (event) {
+    document.getElementById("intro").setAttribute("style", "display:none;");
+    document.getElementById("quiz").setAttribute("style", "display: flex");
+    displayQuestion();
+    timer();
+});
