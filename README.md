@@ -1,5 +1,7 @@
 # Cwill-JS-Quiz
 
+![04--homework-demo](https://github.com/Cwill290/Cwill-JS-Quiz/assets/130315092/04b47a93-a52f-4069-bf59-3992511b9278)
+
 ## Description
 A 5 Question quiz that tests your basic knowledge of Javascript.
 
