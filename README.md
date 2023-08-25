@@ -14,3 +14,7 @@ Push the start quiz button and answer the following multiple choice questions th
 
 ## Credits
 https://web.dev/learn
+
+https://www.youtube.com/watch?v=pQr4O1OITJo
+
+https://www.theodinproject.com/
